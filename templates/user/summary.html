@@ -1,0 +1,125 @@
+{% extends "user/base0.html" %}
+{% block title %}Gaddi-Summary Page{% endblock %}
+{% block head %}
+  <script src="https://cdn.tailwindcss.com"></script>
+{% endblock %}
+
+{% block content %}
+<div class="bg-gray-100 font-sans">
+  <div class="max-w-4xl mx-auto px-4 py-6">
+
+    <!-- Heading -->
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">Parking Summary for <span class="text-blue-600">{{user.name}}</span></h1>
+
+    <!-- Usage Summary -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div class="bg-white p-4 rounded-lg shadow text-center">
+        <h2 class="text-xl font-semibold text-gray-700">Bookings</h2>
+        <p class="text-2xl font-bold text-blue-600">{{ total_booking }}</p>
+      </div>
+      <div class="bg-white p-4 rounded-lg shadow text-center">
+        <h2 class="text-xl font-semibold text-gray-700">Total Hours</h2>
+        <p class="text-2xl font-bold text-blue-600">{{ total_hours }}</p>
+      </div>
+      <div class="bg-white p-4 rounded-lg shadow text-center">
+        <h2 class="text-xl font-semibold text-gray-700">Total Spent</h2>
+        <p class="text-2xl font-bold text-blue-600">₹{{ user_spending }}</p>
+      </div>
+    </div>
+
+    <!-- Recent Bookings -->
+    <div class="bg-white p-6 rounded-lg shadow">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4">Recent Bookings</h2>
+
+      <!-- Booking 1 -->
+      {% for booking in bookings %}
+      <div class="border-b border-gray-200 py-4 flex justify-between items-center">
+        <div>
+          <p class="font-medium text-gray-700">{{booking.spot.lot.name}}</p>
+          <p class="text-sm text-gray-500">{{ booking.start_time.strftime('%B %d') }} • ₹{{ booking.spot.price_per_hrs }}/hr</p>
+        </div>
+        <button class="bg-blue-600 text-white text-sm px-4 py-2 rounded hover:bg-blue-700 transition view-invoice-btn"
+        data-lot="{{ booking.spot.lot.name }}"
+        data-date="{{ booking.start_time.strftime('%b %d, %Y') }}"
+        data-hours="{{ ((booking.end_time - booking.start_time).total_seconds() / 3600) | round(2) }}"
+        data-rate="{{ booking.spot.price_per_hrs }}"
+        data-total="{{ ((booking.end_time - booking.start_time).total_seconds() / 3600) * booking.spot.price_per_hrs | round(2) }}"
+        >
+          View Invoice
+        </button>
+        
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+
+<!-- Invoice Modal -->
+<div id="invoiceModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+  <div class="bg-white w-full max-w-md rounded-lg shadow-lg p-6 relative">
+    <button id="closeInvoice" class="absolute top-3 right-3 text-gray-500 hover:text-black text-xl">&times;</button>
+
+    <h2 class="text-xl font-bold mb-4">Invoice</h2>
+    <p><strong>Parking Lot:</strong> <span id="modal-lot">--</span></p>
+    <p><strong>Date:</strong> <span id="modal-date">--</span></p>
+    <p><strong>Duration:</strong> <span id="modal-duration">--</span></p>
+    <p><strong>Rate:</strong> ₹<span id="modal-rate">--</span>/hr</p>
+    <p><strong>Total Amount:</strong> ₹<span id="modal-total">--</span></p>
+
+    <hr class="my-4">
+    <p class="text-sm text-gray-500">Thank you for using Gaddi!</p>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const modal = document.getElementById("invoiceModal");
+    const closeBtn = document.getElementById("closeInvoice");
+
+    // Modal fields
+    const modalLot = document.getElementById("modal-lot");
+    const modalDate = document.getElementById("modal-date");
+    const modalDuration = document.getElementById("modal-duration");
+    const modalRate = document.getElementById("modal-rate");
+    const modalTotal = document.getElementById("modal-total");
+
+    document.querySelectorAll(".view-invoice-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        // Read data attributes
+        const lot = btn.getAttribute("data-lot");
+        const date = btn.getAttribute("data-date");
+        const hours = btn.getAttribute("data-hours");
+        const rate = btn.getAttribute("data-rate");
+        const total = btn.getAttribute("data-total");
+
+        // Set modal content
+        modalLot.textContent = lot;
+        modalDate.textContent = date;
+        modalDuration.textContent = `${hours} hours`;
+        modalRate.textContent = rate;
+        modalTotal.textContent = total;
+
+        // Show modal
+        modal.classList.remove("hidden");
+      });
+    });
+
+    // Close modal
+    closeBtn.addEventListener("click", () => {
+      modal.classList.add("hidden");
+    });
+
+    // Optional: close when clicking outside
+    window.addEventListener("click", (e) => {
+      if (e.target === modal) {
+        modal.classList.add("hidden");
+      }
+    });
+  });
+</script>
+
+{% endblock %}
+

@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gaddi-Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3a0ca3;
+            --accent-color: #f72585;
+            --text-color: #2b2d42;
+            --light-text: #8d99ae;
+            --bg-light: #f8f9fa;
+            --white: #ffffff;
+            --success-color: #4cc9f0;
+            --error-color: #f72585;
+            --border-radius: 12px;
+            --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .login-container {
+            background-color: var(--white);
+            width: 100%;
+            max-width: 440px;
+            padding: 40px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            z-index: -1;
+        }
+        
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .login-header img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 15px;
+            border: 3px solid var(--bg-light);
+        }
+        
+        .login-header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 10px;
+        }
+        
+        .login-header p {
+            color: var(--light-text);
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            font-size: 14px;
+            border: 2px solid #e9ecef;
+            border-radius: var(--border-radius);
+            background-color: var(--bg-light);
+            transition: var(--transition);
+            position: relative;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background-color: var(--white);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+        }
+        
+        .form-control.error {
+            border-color: var(--error-color);
+        }
+        
+        .form-control.success {
+            border-color: var(--success-color);
+        }
+        
+        .error-message {
+            color: var(--error-color);
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .password-wrapper {
+            position: relative;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: var(--light-text);
+            font-size: 18px;
+        }
+        
+        .password-toggle:hover {
+            color: var(--text-color);
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+            margin-bottom: 20px;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: var(--white);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+        }
+        
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background-color: #e9ecef;
+        }
+        
+        .divider-text {
+            padding: 0 15px;
+            color: var(--light-text);
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+        
+        .signup-link {
+            text-align: center;
+            font-size: 14px;
+            color: var(--light-text);
+        }
+        
+        .signup-link a {
+            color: var(--primary-color);
+            font-weight: 500;
+            text-decoration: none;
+        }
+        
+        .signup-link a:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 30px 20px;
+            }
+            
+            .login-header h1 {
+                font-size: 20px;
+            }
+            
+            .options {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+         <!--show the flash message -->
+        <!--{% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flashes">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} mt-2">
+                    {{ message}}
+                    </div>
+                {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        -->
+        <div class="login-header">
+            <img src="{{url_for('static',filename='images/wl.webp')}}" alt="Company logo with geometric abstract design in blue and purple gradient colors" />
+            <h1>Welcome Back</h1>
+            <p>Please enter your credentials to log in</p>
+        </div>
+        
+        <form id="loginForm" method="POST" action="{{ url_for('login_post') }}">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" name = 'email' id="email" class="form-control" placeholder="your@email.com" required>
+                <div class="error-message" id="email-error">Please enter a valid email address</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="password-wrapper">
+                    <input type="password" name = 'password' id="password" class="form-control" placeholder="Enter your password" required>
+                    <span class="password-toggle" id="togglePassword">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/>
+                            <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/>
+                        </svg>
+                    </span>
+                    <div class="error-message" id="password-error">Password must be at least 6 characters</div>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Sign In</button>
+        </form>
+        
+        <div class="divider">
+            <span class="divider-text">or</span>
+        </div>
+        <p class="signup-link">Don't have an account? <a href="{{url_for('register')}}">Sign up</a></p>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Password toggle functionality
+            const togglePassword = document.querySelector('#togglePassword');
+            const password = document.querySelector('#password');
+            
+            togglePassword.addEventListener('click', function() {
+                const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+                password.setAttribute('type', type);
+                
+                // Toggle icon
+                this.innerHTML = type === 'password' ? 
+                    `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/>
+                        <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/>
+                    </svg>` :
+                    `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7.028 7.028 0 0 0-2.79.588l.77.771A5.944 5.944 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.134 13.134 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755-.165.165-.337.328-.517.486l.708.709z"/>
+                        <path d="M11.297 9.176a3.5 3.5 0 0 0-4.474-4.474l.823.823a2.5 2.5 0 0 1 2.829 2.829l.822.822zm-2.943 1.299.822.822a3.5 3.5 0 0 1-4.474-4.474l.823.823a2.5 2.5 0 0 0 2.829 2.829z"/>
+                        <path d="M3.35 5.47c-.18.16-.353.322-.518.487A13.134 13.134 0 0 0 1.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7.029 7.029 0 0 1 8 13.5C3 13.5 0 8 0 8s.939-1.721 2.641-3.238l.708.709z"/>
+                    </svg>`;
+            });
+            
+            // Form validation
+            const form = document.getElementById('loginForm');
+            const email = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            const emailError = document.getElementById('email-error');
+            const passwordError = document.getElementById('password-error');
+            
+            form.addEventListener('submit', function(e) {
+                let isValid = true;
+                
+                // Email validation
+                if (!validateEmail(email.value)) {
+                    email.classList.add('error');
+                    emailError.style.display = 'block';
+                    isValid = false;
+                } else {
+                    email.classList.remove('error');
+                    emailError.style.display = 'none';
+                }
+                
+                // Password validation
+                if (passwordInput.value.length < 6) {
+                    passwordInput.classList.add('error');
+                    passwordError.style.display = 'block';
+                    isValid = false;
+                } else {
+                    passwordInput.classList.remove('error');
+                    passwordError.style.display = 'none';
+                }
+                
+                if (isValid) {
+                    // Form is valid - in a real app, you would submit to the server here
+                    alert('Login successful! Redirecting to dashboard...');
+                }
+            });
+            
+            function validateEmail(email) {
+                const re = /^[^\s@]+@[^\s@]/;
+                return re.test(email);
+            }
+            
+            // Input validation on the fly
+            email.addEventListener('input', function() {
+                if (validateEmail(this.value)) {
+                    this.classList.remove('error');
+                    emailError.style.display = 'none';
+                }
+            });
+            
+            passwordInput.addEventListener('input', function() {
+                if (this.value.length >= 6) {
+                    this.classList.remove('error');
+                    passwordError.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+

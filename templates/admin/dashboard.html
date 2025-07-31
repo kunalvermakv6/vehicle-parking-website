@@ -1,0 +1,593 @@
+{% extends "admin/base0.html" %}
+
+{% block title %}Gaddi-Admin Dashboard{% endblock %}
+
+{% block head %}
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --secondary: #10b981;
+            --danger: #ef4444;
+        }
+        .parking-slot {
+            transition: all 0.2s ease;
+        }
+        .parking-slot:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .closed {
+            background-color: #fecaca;
+        }
+        .available {
+            background-color: #d1fae5;
+        }
+        .occupied {
+            background-color: #fef08a;
+        }
+        .slot-number {
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+        #parkingGrid {
+            display: grid;
+            gap: 10px;
+        }
+    </style>
+
+{% endblock %}
+{% block content %}
+
+<div class="bg-gray-100 min-h-screen ">
+    <div class="min-h-screen">
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top Navigation -->
+            <!-- welcome -->
+            <div class="card p-4 flex justify-between items-center">
+                <div class="flex items-center">
+                    <div>
+                       
+                       <h1 class="text-2xl font-bold text-gray-800">Welcome back, <span class="text-blue-600">{{ user.name }}</span></h1>
+                       <p class="text-gray-500">{{ today }}</p>
+                        
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Dashboard Content -->
+            <main class="flex-1  p-6">
+                <!-- Stats Overview -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-gray-500 text-sm">Total Lots</p>
+                                <h3 class="text-2xl font-bold">{{ total_lots }}</h3>
+                            </div>
+                            <div class="bg-indigo-100 p-3 rounded-full">
+                                <i class="fas fa-parking text-indigo-600"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-gray-500 text-sm">Total Slots</p>
+                                <h3 class="text-2xl font-bold">{{ total_spots }}</h3>
+                            </div>
+                            <div class="bg-green-100 p-3 rounded-full">
+                                <i class="fas fa-car text-green-600"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-gray-500 text-sm">Closed</p>
+                                <h3 class="text-2xl font-bold">{{ closed_spots }}</h3>
+                            </div>
+                            <div class="bg-red-100 p-3 rounded-full">
+                                <i class="fas fa-times-circle text-red-600"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-gray-500 text-sm">Available</p>
+                                <h3 class="text-2xl font-bold">{{ available_spots  }}</h3>
+                            </div>
+                            <div class="bg-blue-100 p-3 rounded-full">
+                                <i class="fas fa-check-circle text-blue-600"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Parking Lots Management -->
+                <div class="bg-white rounded-lg shadow mb-6">
+                    <div class="p-6 border-b flex justify-between items-center ">
+                        <h2 class="text-lg font-semibold">Parking Lots</h2>
+                        <button id="openAddParkingBtn" onclick="openAddParkingModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm">
+                            <i class="fas fa-plus mr-2"></i>Add New Lot
+                        </button>
+                    </div>
+                    <div class="p-6">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lot ID</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Slots</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price/hr</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    {% for lot in parking_lots %}
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ lot.id }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ lot.name }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ lot.address }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ lot.total_spots }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ lot.price_per_hrs }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ 'bg-green-100 text-green-800' if lot.status == 'active' else 'bg-red-100 text-yellow-800' }}">
+                                                    {{ lot.status.capitalize() }}
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                <button onclick="openEditParkingModal(this)"
+                                                class="text-indigo-600 hover:text-indigo-900 mr-3"
+                                                data-id="{{ lot.id }}"
+                                                data-name="{{ lot.name }}"
+                                                data-location="{{ lot.address }}"
+                                                data-slots="{{ lot.total_spots }}"
+                                                data-status="{{ lot.status }}"
+                                                data-admin_id="{{ lot.admin_id }}"
+                                                data-pincode="{{ lot.pincode }}"
+                                                data-price_per_hr="{{ lot.price_per_hrs }}">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button onclick="deleteParkingLot(this)"
+                                                 class="text-red-600 hover:text-red-900"
+                                                 data-id = "{{ lot.id }}">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <!-- Parking Slots Visualization -->
+                <div id="parkingSlotsSection" class="bg-white rounded-lg shadow mb-6">
+                    <div class="p-6 border-b">
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center space-x-4">
+                                <h2 class="text-lg font-semibold">Parking Slots -</h2>
+                                <form method="GET" action="{{ url_for('dashboard', username=username) }}">
+                                    <select name="lot_id" id="lotSelector" onchange="this.form.submit()" class="border rounded-md px-3 py-1 text-sm">
+                                        {% for lot in parking_lots %}
+                                            <option value="{{ lot.id }}" {% if lot.id == selected_lot_id %}selected{% endif %}>
+                                                {{ lot.name }} (ID: {{ lot.id }})
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </form>
+                            </div>
+                            <div class="flex space-x-4">
+                                <button onclick="openAddSlotModal(this)" 
+                                class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm">
+                                    <i class="fas fa-plus mr-2"></i>Add Slot
+                                </button>
+                                <div class="flex items-center space-x-4">
+                                    <div class="flex items-center">
+                                        <div class="w-3 h-3 rounded-full bg-green-200 mr-1"></div>
+                                        <span class="text-xs">Available</span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <div class="w-3 h-3 rounded-full bg-red-200 mr-1"></div>
+                                        <span class="text-xs">Closed</span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <div class="w-3 h-3 rounded-full bg-yellow-200 mr-1"></div>
+                                        <span class="text-xs">Occupied</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div id="parkingGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-8">
+                            <!-- Slots will be dynamically generated here -->
+                            {% for spot in parking_spots %}
+                                <a href="{{ url_for('edit_slot', username=username, slot_id=spot.id) }}" class="parking-slot {{ spot.status }} p-4 rounded-md cursor-pointer relative" >
+                                    <div class="slot-number absolute top-1 left-1">{{ loop.index }}</div>
+                                    <div class="flex flex-col items-center justify-center h-full">
+                                        <i class="fas {{ 'fa-wheelchair' if spot.slot_type == 'disabled' else 'fa-charging-station' if spot.slot_type == 'electric' else 'fa-crown' if spot.slot_type == 'premium' else 'fa-car' }} text-xl mb-2"></i>
+                                        <span class="text-xs capitalize">{{ spot.slot_type }}</span>
+                                        <span class="text-xs">{{ spot.status }}</span>
+                                        {% if spot.is_chargeable %}
+                                        <span class="text-xs">₹{{ spot.price_per_hr }}/hr</span>
+                                        {% endif %}
+                                    
+                                    </div>
+                                
+                                </a>
+                            {% endfor %}
+
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Add Parking Lot Modal -->
+    <div id="addParkingModal" class="fixed z-[9999] inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden overflow-y-auto">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div class="max-h-[90vh] overflow-y-auto p-6 rounded-lg">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium">Add Parking Lot</h3>
+                    <button onclick="closeAddParkingModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form id="addParkingForm" method="POST" action="{{ url_for('add_lot',username=username) }}">
+                    <div class="mb-4 ">
+                        <label for="parkingName" class="block text-sm font-medium text-gray-700 mb-1">Lot Name</label>
+                        <input type="text" id="parkingName" name="name" class="w-full p-2 border border-gray-300 rounded-md" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="totalSlots" class="block text-sm font-medium text-gray-700 mb-1">Total Slots</label>
+                        <input type="number" id="totalSlots" name="total_spots" class="w-full p-2 border border-gray-300 rounded-md" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="totalSlots" class="block text-sm font-medium text-gray-700 mb-1">price/hr</label>
+                        <input type="number" id="price_per_hr" name="price_per_hr" class="w-full p-2 border border-gray-300 rounded-md" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="parkingLocation" class="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                        <input type="text" id="parkingLocation" name="address" class="w-full p-2 border border-gray-300 rounded-md" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="pincode" class="block text-sm font-medium text-gray-700 mb-1">pincode</label>
+                        <input type="number" id="pincode" name="pincode" class="w-full p-2 border border-gray-300 rounded-md" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="parkingStatus" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                        <select id="parkingStatus" name="status" class="w-full p-2 border border-gray-300 rounded-md" required>
+                            <option value="active">Active</option>
+                            <option value="closed">Closed</option>
+                        </select>
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" onclick="closeAddParkingModal()" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700">
+                            Save
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Parking Lot Modal -->
+    <div id="editParkingModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-[9999]">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md ">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium">Edit Parking Lot</h3>
+                    <button onclick="closeEditParkingModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form id="editParkingForm" method ="POST" action="{{ url_for('update_lot', username=username) }}">
+                    <input type="hidden" id="editParkingId" name="parkingId">
+                    <div class="mb-4">
+                        <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Lot Name</label>
+                        <input type="text" id="editParkingName" name="name" class="w-full p-2 border border-gray-300 rounded-md" value ="" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="address" class="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                        <input type="text" id="editParkingLocation" name="Address" class="w-full p-2 border border-gray-300 rounded-md">
+                    </div>
+                    <div class="mb-4">
+                        <label for="editpincode" class="block text-sm font-medium text-gray-700 mb-1">pincode</label>
+                        <input type="number" id="editpincode" name="pincode" class="w-full p-2 border border-gray-300 rounded-md">
+                    </div>
+                    <div class="mb-4">
+                        <label for="editprice" class="block text-sm font-medium text-gray-700 mb-1">Price/hr</label>
+                        <input type="number" id="editprice" name="price" class="w-full p-2 border border-gray-300 rounded-md">
+                    </div>
+                    <div class="mb-4">
+                        <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                        <select id="editParkingStatus" name="status" class="w-full p-2 border border-gray-300 rounded-md">
+                            <option value="active">Active</option>
+                            <option value="closed">Closed</option>
+                        </select>
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" onclick="closeEditParkingModal()" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700">
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium">Confirm Deletion</h3>
+                    <button onclick="closeDeleteModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <p class="mb-6">Are you sure you want to delete this item? This action cannot be undone.</p>
+                <div class="flex justify-end space-x-3">
+                    <form method="POST" id="deletelot">
+                        <button onclick="closeDeleteModal()" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            Cancel
+                        </button>
+                        <button onclick="confirmDelete()" class="px-4 py-2 bg-red-600 text-white rounded-md text-sm font-medium hover:bg-red-700">
+                            Delete
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Edit Slot Modal -->
+    <div id="editSlotModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white p-6 rounded-lg w-full max-w-md shadow-lg relative">
+            <!-- Close Button -->
+            <button onclick="closeEditSlotModal()" class="absolute top-2 right-3 text-gray-600 hover:text-black text-xl">
+                &times;
+            </button>
+
+            <h2 class="text-xl font-semibold mb-4">Edit Parking Slot</h2>
+
+            <!-- Edit Form -->
+            <form method="POST" action="/{{ username }}/update-slot">
+                <input type="hidden" name="slotId" id="editSlotId">
+
+                <div class="mb-3">
+                    <label for="editSlotType" class="block text-sm font-medium mb-1">Slot Type</label>
+                    <select id="editSlotType" name="slotType" class="w-full border rounded px-3 py-2">
+                        <option value="regular">Regular</option>
+                        <option value="premium">Premium</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="editSlotStatus" class="block text-sm font-medium mb-1">Status</label>
+                    <select id="editSlotStatus" name="slotStatus" class="w-full border rounded px-3 py-2">
+                        <option value="available">Available</option>
+                        <option value="occupied">Occupied</option>
+                        <option value="closed">Closed</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label for="editSlotPrice" class="block text-sm font-medium mb-1">Price per Hour (₹)</label>
+                    <input type="number" id="editSlotPrice" name="slotPrice" class="w-full border rounded px-3 py-2" required>
+                </div>
+
+                <div class="flex justify-between">
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+                        Save Changes
+                    </button>
+                    
+                    <!-- Delete Slot Button -->
+                    <form method="POST" action="/{{ username }}/delete-slot" onsubmit="return confirm('Are you sure you want to delete this slot?');">
+                        <input type="hidden" name="slotId" id="deleteSlotId">
+                        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded">
+                            Delete Slot
+                        </button>
+                    </form>
+                </div>
+            </form>
+        </div>
+    </div>
+
+        <!-- Add Parking Slot Modal -->
+    <div id="addSlotModal" class="fixed  z-[9999] inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-medium">Add Parking Slot</h3>
+                    <button onclick="closeAddSlotModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form id="addSlotForm" method="POST" action="{{ url_for('add_slot', username=username) }}">
+                    <div class="mb-4">
+                        <label for="lotId" class="block text-sm font-medium text-gray-700 mb-1">Lot Id</label>
+                        <input type="text" id="lotId" name="lotId" class="w-full p-2 border border-gray-300 rounded-md">
+                    </div>
+                    <div class="mb-4">
+                        <label for="slotprice" class="block text-sm font-medium text-gray-700 mb-1">Slot price/hr</label>
+                        <input type="number" id="slotprice" name="slotprice" class="w-full p-2 border border-gray-300 rounded-md">
+                    </div>
+                    <div class="mb-4">
+                        <label for="slotType" class="block text-sm font-medium text-gray-700 mb-1">Slot Type</label>
+                        <select id="slotType" name="slotType" class="w-full p-2 border border-gray-300 rounded-md">
+                            <option value="regular">Regular</option>
+                            <option value="premium">Premium</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label for="slotStatus" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                        <select id="slotStatus" name="slotStatus" class="w-full p-2 border border-gray-300 rounded-md">
+                            <option value="available">Available</option>
+                            <option value="occupied">Occupied</option>
+                            <option value="closed">Closed</option>
+                        </select>
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" onclick="closeAddSlotModal()" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700">
+                            Add Slot
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+
+{% endblock %}
+
+{% block script %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+    // Your JS here
+
+
+    console.log("JS loaded ");
+    console.log("JS is working!");
+    
+    });
+
+    // Parking Lot Modals
+    function openAddParkingModal() {
+        document.getElementById('addParkingModal').classList.remove('hidden');
+    }
+
+    function closeAddParkingModal() {
+        document.getElementById('addParkingModal').classList.add('hidden');
+    }
+
+    function openEditParkingModal(button) {
+    const lotId = button.getAttribute('data-id');
+    const name = button.getAttribute('data-name');
+    const location = button.getAttribute('data-location');
+    const status = button.getAttribute('data-status');
+    const pincode = button.getAttribute('data-pincode');
+    const price_per_hr = button.getAttribute('data-price_per_hr');
+
+    document.getElementById('editParkingId').value = lotId;
+    document.getElementById('editParkingName').value = name;
+    document.getElementById('editParkingLocation').value = location;
+    document.getElementById('editpincode').value = pincode;
+    document.getElementById('editParkingStatus').value = status;
+    document.getElementById('editprice').value = price_per_hr;
+    document.getElementById('editParkingModal').classList.remove('hidden');
+    }
+
+    function closeEditParkingModal() {
+        document.getElementById('editParkingModal').classList.add('hidden');
+    }
+
+    
+    
+    
+    // Delete Modals
+    function deleteParkingLot(button) {
+        const lotId = button.getAttribute('data-id');
+        console.log("Lot to delete:", lotId);  // For testing
+        // Save ID for deletion
+        window.lotIdToDelete = lotId;
+
+        document.getElementById('deleteModal').classList.remove('hidden');
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').classList.add('hidden');
+    }
+
+    let lotIdToDelete = null;
+    const loggedInUsername = "{{ username }}";
+    function confirmDelete() {
+    const form = document.getElementById('deletelot');
+    form.action = `/${loggedInUsername}/delete-lot/${window.lotIdToDelete}`;
+    form.submit();
+    }
+
+
+    // Form Submissions
+    document.getElementById('addParkingForm').addEventListener('submit', function(e) {
+        alert('New parking lot added successfully!');
+        closeAddParkingModal();
+    });
+
+    document.getElementById('editParkingForm').addEventListener('submit', function(e) {
+        alert('Parking lot updated successfully!');
+        closeEditParkingModal();
+    });
+
+    document.getElementById('addSlotForm').addEventListener('submit', function(e) {
+        alert('New parking slot added successfully!');
+        closeAddSlotModal();
+        generateParkingSlots(); // Refresh the slots
+    });
+
+    document.getElementById('editSlotForm').addEventListener('submit', function(e) {
+        alert('Parking slot updated successfully!');
+        closeEditSlotModal();
+        generateParkingSlots(); // Refresh the slots
+    });
+    // Parking Slot Functions
+    function openEditSlotModal(id, type, status, price) {
+        document.getElementById('editSlotModal').classList.remove('hidden');
+        document.getElementById('editSlotId').value = id;
+        document.getElementById('editSlotType').value = type;
+        document.getElementById('editSlotStatus').value = status;
+        document.getElementById('editSlotPrice').value = price;
+        document.getElementById('deleteSlotId').value = id;
+    }
+
+    function closeEditSlotModal() {
+        document.getElementById('editSlotModal').classList.add('hidden');
+    }
+
+
+ // Parking Slot Modals
+    function openAddSlotModal() {
+        document.getElementById('addSlotModal').classList.remove('hidden');
+    }
+
+    function closeAddSlotModal() {
+        document.getElementById('addSlotModal').classList.add('hidden');
+    }
+
+    function openEditSlotModal(slotId, slotType, slotStatus, slotPrice) {
+        // Example: open a modal and fill in values
+        document.getElementById('editSlotModal').classList.remove('hidden');
+        document.getElementById('editSlotId').value = slotId;
+        document.getElementById('editSlotType').value = slotType;
+        document.getElementById('editSlotStatus').value = slotStatus;
+        document.getElementById('editSlotPrice').value = slotPrice;
+    }
+
+    function closeEditSlotModal() {
+        document.getElementById('editSlotModal').classList.add('hidden');
+    }
+
+    </script>
+{% endblock %}

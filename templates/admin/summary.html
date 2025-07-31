@@ -1,0 +1,150 @@
+{% extends "admin/base0.html" %}
+
+{% block title %}Gaddi-Admin Summary{% endblock %}
+
+{% block head %}
+<script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .sidebar { transition: all 0.3s; }
+        .sidebar.collapsed {
+            width: 5rem;
+        }
+        .sidebar.collapsed .nav-text {
+            display: none;
+        }
+        .chart-container {
+            height: 300px;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                z-index: 50;
+                transform: translateX(-100%);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+        }
+        .report-card {
+            transition: all 0.2s ease;
+        }
+        .report-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+    </style>
+{% endblock %}
+{% block content %}
+<div class="bg-gray-100">
+    <!-- Previous code remains the same until the main content section -->
+    
+    <main class="p-6">
+        <!-- Date Range Picker (same as before) -->
+        
+        <!-- Example Report Section -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Monthly Parking Report - June 2023</h2>
+            
+            <!-- Detailed Charts -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <!-- Revenue Chart -->
+                <div class="report-card bg-white rounded-lg shadow-sm p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4"> Revenue chart</h3>
+                    <div class="chart-container">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Utilization Chart -->
+                <div class="report-card bg-white rounded-lg shadow-sm p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Slots</h3>
+                    <div class="chart-container">
+                        <canvas id="utilizationChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block script %}
+
+<script>
+    // Slot Utilization Chart
+    const ctxUtilization = document.getElementById('utilizationChart').getContext('2d');
+    const utilizationChart = new Chart(ctxUtilization, {
+        type: 'pie',
+        data: {
+            labels: {{ status_labels | tojson }},
+            datasets: [{
+                label: 'Slot Status',
+                data: {{ status_counts | tojson }},
+                backgroundColor: [
+                    '#4CAF50', // Available
+                    '#F44336', // Occupied
+                    '#FFC107'  // Reserved or other
+                ],
+                borderColor: '#fff',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                },
+                title: {
+                    display: true,
+                    text: 'Parking Slot Distribution by Status'
+                }
+            }
+        }
+    });
+    // Revenue per Parking Lot Chart
+    const ctxRevenue = document.getElementById('revenueChart').getContext('2d');
+    const revenueChart = new Chart(ctxRevenue, {
+        type: 'bar',
+        data: {
+            labels: {{ lot_names | tojson }},
+            datasets: [{
+                label: 'Revenue (₹)',
+                data: {{ lot_revenues | tojson }},
+                backgroundColor: '#3B82F6',
+                borderColor: '#1D4ED8',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                title: {
+                    display: true,
+                    text: 'Revenue from Each Parking Lot (in ₹)'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Revenue (₹)'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Parking Lot'
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+
+{% endblock %}

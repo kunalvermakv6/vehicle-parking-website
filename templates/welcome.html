@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Gaddi-Home Page{% endblock %}
+
+{% block content %}
+
+{% block head %}
+<style>
+    .welcome-container{
+        text-align: center;
+        padding: 50px;
+        background-image: url('{{ url_for('static', filename='images/bg.jpg') }}');
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: cover;
+        color: white;
+        height: 70vh;
+        
+    }
+    .welcome-box {
+        background-color: rgba(0, 0, 0, 0.7);
+        padding: 20px;
+        border-radius: 10px;
+        max-width: 600px;
+        margin: auto;
+        max-width: 430px;
+    }
+    #explore{
+        margin-top: 70px;
+    }
+    .about us {
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        margin-top: 20px;
+    }
+    .about-us {
+       text-align:center
+    }
+    #para {
+    text-align: center;         
+    margin: 0 auto;             
+    max-width: 600px;           
+    padding: 0 20px;            
+}
+
+</style>
+
+
+{% endblock %}
+<div class="welcome-container">
+    <div class="welcome-box">
+        <h1>Welcome to Gaddi!</h1>
+        <p>Making your parking easier, faster, and smarter.</p>
+        <p>Start your smarter parking journey now.</p>
+
+        <a href="{{url_for('login')}}" class="btn btn-primary" id="explore">Explore Now</a>
+    </div>
+</div>
+<div class="about us">
+        <h2 class= "about-us">About Us</h2>
+        <p id="para">Gaddi is your smart solution for hassle-free vehicle parking.
+            We help you find and reserve parking spots in advance, saving you time, fuel, and stress.
+            With real-time availability, secure payments, and a user-friendly interface, GadiSpot makes
+            parking simple and reliable.
+        </p>
+</div>
+{% endblock %}
